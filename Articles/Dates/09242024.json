@@ -1,0 +1,18 @@
+{
+  "type": "Date",
+  "title": "articleTitle",
+  "paragraphs": {
+    "header1Name": "Lorem ipsum odor amet, consectetuer adipiscing elit. Dis bibendum ultricies ad proin metus augue morbi a. Lacinia viverra rhoncus feugiat venenatis vitae; cubilia vivamus pellentesque. Sit mauris rutrum est platea, adipiscing in sagittis ultricies. Mus taciti porttitor a himenaeos finibus. Natoque potenti ipsum venenatis magna class quam.\n\nDolor rhoncus urna leo neque et. Viverra penatibus volutpat euismod potenti hac dictumst? Facilisis mauris feugiat ut facilisi aliquet luctus consectetur. Metus eget tempus; natoque hendrerit pharetra bibendum. Massa mollis curae nostra eget elit ridiculus porta sed donec. Potenti proin maecenas ante maximus mus commodo massa venenatis. Malesuada aliquam pharetra justo malesuada duis pharetra? Ac nisl id dui purus penatibus quisque. Non vitae ante integer auctor nostra adipiscing.",
+    "header2Name": "Lorem ipsum odor amet, consectetuer adipiscing elit. Dis bibendum ultricies ad proin metus augue morbi a. Lacinia viverra rhoncus feugiat venenatis vitae; cubilia vivamus pellentesque. Sit mauris rutrum est platea, adipiscing in sagittis ultricies. Mus taciti porttitor a himenaeos finibus. Natoque potenti ipsum venenatis magna class quam.\n\nDolor rhoncus urna leo neque et. Viverra penatibus volutpat euismod potenti hac dictumst? Facilisis mauris feugiat ut facilisi aliquet luctus consectetur. Metus eget tempus; natoque hendrerit pharetra bibendum. Massa mollis curae nostra eget elit ridiculus porta sed donec. Potenti proin maecenas ante maximus mus commodo massa venenatis. Malesuada aliquam pharetra justo malesuada duis pharetra? Ac nisl id dui purus penatibus quisque. Non vitae ante integer auctor nostra adipiscing."
+  },
+  "gallery": {
+    "Media/sample_image_1.jpg": "imageCaption"
+  },
+  "mainImage": "Media/sample_image_1.jpg",
+  "caption": "mainImageCaption",
+  "infobox": {
+    "row1Title": "row1Content",
+    "row2Title": "row2Content",
+    "row3Title": "row3Content"
+  }
+}
