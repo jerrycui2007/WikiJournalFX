@@ -7,7 +7,7 @@
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.wikijournalfx.wikijournalfx.Controller">
     <!-- Left Panel -->
     <left>
-        <VBox spacing="10" alignment="TOP_CENTER">
+        <VBox fx:id="leftPanel" spacing="10" alignment="TOP_CENTER">
             <!-- Logo and Welcome Text -->
             <VBox alignment="TOP_CENTER" spacing="5">
                 <Label text="WikiJournal" style="-fx-font-size: 48px;" />
@@ -46,8 +46,14 @@
 
     <!-- Center Panel -->
     <center>
-        <VBox alignment="CENTER" spacing="10">
+        <VBox fx:id="centerPanel" alignment="CENTER" spacing="10">
             <Label text="Select an article or create a new one to begin writing." style="-fx-font-size: 12px;" />
         </VBox>
     </center>
+
+    <!-- Right Panel -->
+    <right>
+        <VBox fx:id="rightPanel" alignment="TOP_CENTER" spacing="10">
+        </VBox>
+    </right>
 </BorderPane>

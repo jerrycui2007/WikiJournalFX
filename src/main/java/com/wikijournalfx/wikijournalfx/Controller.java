@@ -3,14 +3,25 @@ package com.wikijournalfx.wikijournalfx;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 
 public class Controller {
 
+    public VBox rightPanel;
+    public VBox leftPanel;
     @FXML
     private VBox dateArticlesContainer;
 
@@ -20,6 +31,11 @@ public class Controller {
     @FXML
     private VBox otherArticlesContainer;
 
+    @FXML
+    private VBox centerPanel;
+
+    private Article currentOpenArticle;
+
     // Initialize method to dynamically load articles into the containers
     @FXML
     public void initialize() {
@@ -28,7 +44,13 @@ public class Controller {
         for (File article : dateArticles) {
             Label articleLabel = new Label(insertSlashes(article.getName()));
             articleLabel.setStyle("-fx-font-size: 12px;");
-            articleLabel.setOnMouseClicked(event -> editorScreen(article.getPath()));
+            articleLabel.setOnMouseClicked(event -> {
+                try {
+                    editorScreen(article.getPath());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
             dateArticlesContainer.getChildren().add(articleLabel);
         }
 
@@ -117,9 +139,69 @@ public class Controller {
         return jsonFiles;
     }
 
-    private void editorScreen(String path) {
+    private void editorScreen(String path) throws IOException {
         // Open the editor screen
-        System.out.println("Opening article: " + path);
+        currentOpenArticle = new Article(path);
+
+        // Create a header label with the article title
+        Label titleLabel = new Label(currentOpenArticle.getTitle());
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
+
+        // Clear existing content
+        centerPanel.getChildren().clear();
+
+        // Create a ScrollPane to wrap the content
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setFitToWidth(true);
+        VBox contentBox = new VBox(10);
+        scrollPane.setContent(contentBox);
+
+        // Title TextField
+        TextField titleTextField = new TextField(currentOpenArticle.getTitle());
+        titleTextField.setStyle("-fx-font-size: 48px; -fx-font-family: Arial;");
+        contentBox.getChildren().add(titleTextField);
+
+        // Paragraphs
+        for (Entry<String, String> paragraph : currentOpenArticle.getParagraphs().entrySet()) {
+            TextField paragraphHeaderField = new TextField(paragraph.getKey());
+            paragraphHeaderField.setStyle("-fx-font-size: 24px; -fx-font-family: Arial;");
+            contentBox.getChildren().add(paragraphHeaderField);
+
+            TextArea paragraphTextArea = new TextArea(paragraph.getValue());
+            paragraphTextArea.setWrapText(true);
+            paragraphTextArea.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+            contentBox.getChildren().add(paragraphTextArea);
+        }
+
+        // Gallery
+        Label galleryHeaderLabel = new Label("Gallery");
+        galleryHeaderLabel.setStyle("-fx-font-size: 24px; -fx-font-family: Arial;");
+        contentBox.getChildren().add(galleryHeaderLabel);
+
+        for (Map.Entry<String, String> media : currentOpenArticle.getGallery().entrySet()) {
+            try {
+                String imagePath = getClass().getResource(media.getKey()).toExternalForm();
+                Image image = new Image(imagePath, 300, 200, true, true);
+                ImageView imageView = new ImageView(image);
+                contentBox.getChildren().add(imageView);
+
+                TextField captionField = new TextField(media.getValue());
+                captionField.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+                contentBox.getChildren().add(captionField);
+            } catch (Exception e) {
+                System.err.println("Error loading image: " + media.getKey());
+                e.printStackTrace();
+            }
+        }
+
+        // Add Image Button
+        Button addImageButton = new Button("Add image");
+        addImageButton.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+        addImageButton.setMaxWidth(Double.MAX_VALUE);
+        contentBox.getChildren().add(addImageButton);
+
+        // Add the ScrollPane to the centerPanel
+        centerPanel.getChildren().add(scrollPane);
     }
 
     /**
