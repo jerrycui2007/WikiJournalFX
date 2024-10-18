@@ -9,7 +9,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.HTMLEditor;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -168,10 +167,10 @@ public class Controller {
             paragraphHeaderField.setStyle("-fx-font-size: 24px; -fx-font-family: Arial;");
             contentBox.getChildren().add(paragraphHeaderField);
 
-            HTMLEditor paragraphEditor = new HTMLEditor();
-            paragraphEditor.setHtmlText(paragraph.getValue());
-            paragraphEditor.setPrefHeight(300); // Set a preferred height for the editor
-            contentBox.getChildren().add(paragraphEditor);
+            TextArea paragraphTextArea = new TextArea(paragraph.getValue());
+            paragraphTextArea.setWrapText(true);
+            paragraphTextArea.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+            contentBox.getChildren().add(paragraphTextArea);
         }
 
         // Gallery
