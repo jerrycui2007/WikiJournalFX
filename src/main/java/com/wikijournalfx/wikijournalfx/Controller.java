@@ -4,11 +4,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.HTMLEditor;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -167,10 +168,10 @@ public class Controller {
             paragraphHeaderField.setStyle("-fx-font-size: 24px; -fx-font-family: Arial;");
             contentBox.getChildren().add(paragraphHeaderField);
 
-            TextArea paragraphTextArea = new TextArea(paragraph.getValue());
-            paragraphTextArea.setWrapText(true);
-            paragraphTextArea.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
-            contentBox.getChildren().add(paragraphTextArea);
+            HTMLEditor paragraphHTMLEditor = new HTMLEditor();
+            paragraphHTMLEditor.setHtmlText(paragraph.getValue());
+            paragraphHTMLEditor.setPrefHeight(300);  // Adjust the value as needed
+            contentBox.getChildren().add(paragraphHTMLEditor);  // Add this line
         }
 
         // Gallery
