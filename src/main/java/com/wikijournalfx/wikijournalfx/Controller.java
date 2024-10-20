@@ -9,6 +9,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.HTMLEditor;
+import javafx.scene.layout.HBox;
+import javafx.scene.control.Alert;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -141,17 +143,19 @@ public class Controller {
     }
 
     private void editorScreen(String path) throws IOException {
-        // Open the editor screen
+        // Open the article
         currentOpenArticle = new Article(path);
-
-        // Create a header label with the article title
-        Label titleLabel = new Label(currentOpenArticle.getTitle());
-        titleLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
 
         // Clear existing content
         centerPanel.getChildren().clear();
 
-        // Create a ScrollPane to wrap the content
+        // Create main VBox to hold content and gallery
+        VBox mainVBox = new VBox(10);
+
+        // Create HBox to separate content and right panel
+        HBox mainContainer = new HBox(10);
+        
+        // Left side: main content
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         VBox contentBox = new VBox(10);
@@ -170,39 +174,90 @@ public class Controller {
 
             HTMLEditor paragraphHTMLEditor = new HTMLEditor();
             paragraphHTMLEditor.setHtmlText(paragraph.getValue());
-            paragraphHTMLEditor.setPrefHeight(300);  // Adjust the value as needed
-            contentBox.getChildren().add(paragraphHTMLEditor);  // Add this line
+            paragraphHTMLEditor.setPrefHeight(300);
+            contentBox.getChildren().add(paragraphHTMLEditor);
         }
+
+        // Right side: right panel
+        VBox rightPanel = new VBox(10);
+        rightPanel.setMinWidth(300);
+        rightPanel.setMaxWidth(300);
+
+        Label rightPanelLabel = new Label("Article Information");
+        rightPanelLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold;");
+        rightPanel.getChildren().add(rightPanelLabel);
+
+        // Main Image
+        ImageView mainImageView = new ImageView(new Image(currentOpenArticle.getMainImage(), 300, 200, true, true));
+        rightPanel.getChildren().add(mainImageView);
+
+        // Caption
+        TextField captionField = new TextField(currentOpenArticle.getCaption());
+        captionField.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+        rightPanel.getChildren().add(captionField);
+
+        // Infobox
+        for (Map.Entry<String, String> row : currentOpenArticle.getInfobox().entrySet()) {
+            HBox rowBox = new HBox(5);
+
+            TextField keyField = new TextField(row.getKey());
+            keyField.setPrefWidth(100);
+            keyField.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+
+            TextField valueField = new TextField(row.getValue());
+            valueField.setPrefWidth(150);
+            valueField.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+
+            rowBox.getChildren().addAll(keyField, valueField);
+            rightPanel.getChildren().add(rowBox);
+        }
+
+        // Export to HTML button
+        Button exportButton = new Button("Export to HTML");
+        exportButton.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+        exportButton.setOnAction(event -> {
+            currentOpenArticle.convertToHTML();
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Export Successful");
+            alert.setHeaderText(null);
+            alert.setContentText("Export successful");
+            alert.showAndWait();
+        });
+        rightPanel.getChildren().add(exportButton);
+
+        // Add content and right panel to main container
+        mainContainer.getChildren().addAll(scrollPane, rightPanel);
+
+        // Set the width of the scrollPane to fill the remaining space
+        scrollPane.prefWidthProperty().bind(
+            mainContainer.widthProperty().subtract(rightPanel.widthProperty()).subtract(10)
+        );
+
+        // Add the main container to the mainVBox
+        mainVBox.getChildren().add(mainContainer);
 
         // Gallery
-        Label galleryHeaderLabel = new Label("Gallery");
-        galleryHeaderLabel.setStyle("-fx-font-size: 24px; -fx-font-family: Arial;");
-        contentBox.getChildren().add(galleryHeaderLabel);
+        ScrollPane galleryScrollPane = new ScrollPane();
+        HBox galleryBox = new HBox(10);
+        galleryScrollPane.setContent(galleryBox);
+        galleryScrollPane.setFitToWidth(true);
+        galleryScrollPane.setPrefHeight(150);
 
-        for (Map.Entry<String, String> media : currentOpenArticle.getGallery().entrySet()) {
-            try {
-                String imagePath = getClass().getResource(media.getKey()).toExternalForm();
-                Image image = new Image(imagePath, 300, 200, true, true);
-                ImageView imageView = new ImageView(image);
-                contentBox.getChildren().add(imageView);
-
-                TextField captionField = new TextField(media.getValue());
-                captionField.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
-                contentBox.getChildren().add(captionField);
-            } catch (Exception e) {
-                System.err.println("Error loading image: " + media.getKey());
-                e.printStackTrace();
-            }
+        // Add images to the gallery
+        for (Map.Entry<String, String> entry : currentOpenArticle.getGallery().entrySet()) {
+            VBox imageContainer = new VBox(5);
+            ImageView imageView = new ImageView(new Image(entry.getKey(), 100, 100, true, true));
+            TextField captionField2 = new TextField(entry.getValue());
+            captionField2.setMaxWidth(100);
+            imageContainer.getChildren().addAll(imageView, captionField2);
+            galleryBox.getChildren().add(imageContainer);
         }
 
-        // Add Image Button
-        Button addImageButton = new Button("Add image");
-        addImageButton.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
-        addImageButton.setMaxWidth(Double.MAX_VALUE);
-        contentBox.getChildren().add(addImageButton);
+        // Add the gallery to the mainVBox
+        mainVBox.getChildren().add(galleryScrollPane);
 
-        // Add the ScrollPane to the centerPanel
-        centerPanel.getChildren().add(scrollPane);
+        // Add the mainVBox to the centerPanel
+        centerPanel.getChildren().add(mainVBox);
     }
 
     /**
