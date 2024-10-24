@@ -15,11 +15,8 @@ import javafx.scene.control.Alert;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
 
 public class Controller {
 
@@ -154,7 +151,7 @@ public class Controller {
 
         // Create HBox to separate content and right panel
         HBox mainContainer = new HBox(10);
-        
+
         // Left side: main content
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
@@ -167,6 +164,7 @@ public class Controller {
         contentBox.getChildren().add(titleTextField);
 
         // Paragraphs
+        Map<String, HTMLEditor> paragraphEditors = new HashMap<>();
         for (Entry<String, String> paragraph : currentOpenArticle.getParagraphs().entrySet()) {
             TextField paragraphHeaderField = new TextField(paragraph.getKey());
             paragraphHeaderField.setStyle("-fx-font-size: 24px; -fx-font-family: Arial;");
@@ -176,6 +174,8 @@ public class Controller {
             paragraphHTMLEditor.setHtmlText(paragraph.getValue());
             paragraphHTMLEditor.setPrefHeight(300);
             contentBox.getChildren().add(paragraphHTMLEditor);
+
+            paragraphEditors.put(paragraph.getKey(), paragraphHTMLEditor);
         }
 
         // Right side: right panel
@@ -197,6 +197,7 @@ public class Controller {
         rightPanel.getChildren().add(captionField);
 
         // Infobox
+        Map<String, TextField> infoboxFields = new HashMap<>();
         for (Map.Entry<String, String> row : currentOpenArticle.getInfobox().entrySet()) {
             HBox rowBox = new HBox(5);
 
@@ -210,12 +211,29 @@ public class Controller {
 
             rowBox.getChildren().addAll(keyField, valueField);
             rightPanel.getChildren().add(rowBox);
+
+            infoboxFields.put(row.getKey(), valueField);
         }
 
         // Export to HTML button
         Button exportButton = new Button("Export to HTML");
         exportButton.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
         exportButton.setOnAction(event -> {
+            currentOpenArticle.setTitle(titleTextField.getText());
+            currentOpenArticle.setCaption(captionField.getText());
+
+            Map<String, String> updatedParagraphs = new HashMap<>();
+            for (Map.Entry<String, HTMLEditor> entry : paragraphEditors.entrySet()) {
+                updatedParagraphs.put(entry.getKey(), entry.getValue().getHtmlText());
+            }
+            currentOpenArticle.setParagraphs(updatedParagraphs);
+
+            Map<String, String> updatedInfobox = new HashMap<>();
+            for (Map.Entry<String, TextField> entry : infoboxFields.entrySet()) {
+                updatedInfobox.put(entry.getKey(), entry.getValue().getText());
+            }
+            currentOpenArticle.setInfobox(updatedInfobox);
+
             currentOpenArticle.convertToHTML();
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Export Successful");
@@ -230,7 +248,7 @@ public class Controller {
 
         // Set the width of the scrollPane to fill the remaining space
         scrollPane.prefWidthProperty().bind(
-            mainContainer.widthProperty().subtract(rightPanel.widthProperty()).subtract(10)
+                mainContainer.widthProperty().subtract(rightPanel.widthProperty()).subtract(10)
         );
 
         // Add the main container to the mainVBox
