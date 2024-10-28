@@ -11,12 +11,19 @@ import javafx.scene.layout.VBox;
 import javafx.scene.web.HTMLEditor;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Alert;
-
+import javafx.scene.control.Dialog;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.layout.GridPane;
+import javafx.geometry.Insets;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.Optional;
+
+import javafx.stage.FileChooser;
 
 public class Controller {
 
@@ -156,7 +163,6 @@ public class Controller {
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
         VBox contentBox = new VBox(10);
-        scrollPane.setContent(contentBox);
 
         // Title TextField
         TextField titleTextField = new TextField(currentOpenArticle.getTitle());
@@ -178,6 +184,100 @@ public class Controller {
             paragraphEditors.put(paragraph.getKey(), paragraphHTMLEditor);
         }
 
+        // Gallery section
+        Label galleryLabel = new Label("Gallery");
+        galleryLabel.setStyle("-fx-font-size: 24px; -fx-font-family: Arial;");
+        contentBox.getChildren().add(galleryLabel);
+
+        // Initialize gallery box
+        HBox galleryBox = new HBox(10);
+        galleryBox.setStyle("-fx-padding: 10;");
+
+        // Add images to the gallery
+        Map<String, String> updatedGallery = new HashMap<>(currentOpenArticle.getGallery());
+
+        for (Map.Entry<String, String> entry : updatedGallery.entrySet()) {
+            VBox imageContainer = new VBox(5);
+            ImageView imageView = new ImageView(new Image("file:" + entry.getKey(), 100, 100, true, true));
+            TextField imageCaptionField = new TextField(entry.getValue());
+            imageCaptionField.setMaxWidth(100);
+            imageContainer.getChildren().addAll(imageView, imageCaptionField);
+            galleryBox.getChildren().add(imageContainer);
+        }
+
+        // Add Image Button
+        Button addImageButton = new Button("Add Image");
+        addImageButton.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+        addImageButton.setOnAction(event -> {
+            // Create file chooser
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Select Image");
+            fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+            );
+            
+            // Show file chooser dialog
+            File selectedFile = fileChooser.showOpenDialog(addImageButton.getScene().getWindow());
+            
+            if (selectedFile != null) {
+                // Create a dialog for caption input
+                Dialog<String> dialog = new Dialog<>();
+                dialog.setTitle("Add Image Caption");
+                dialog.setHeaderText("Enter caption for the image");
+
+                // Set the button types
+                ButtonType addButtonType = new ButtonType("Add", ButtonBar.ButtonData.OK_DONE);
+                dialog.getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
+
+                // Create the caption field
+                GridPane grid = new GridPane();
+                grid.setHgap(10);
+                grid.setVgap(10);
+                grid.setPadding(new Insets(20, 150, 10, 10));
+
+                TextField mediaCptionField = new TextField();
+                grid.add(new Label("Caption:"), 0, 0);
+                grid.add(mediaCptionField, 1, 0);
+
+                dialog.getDialogPane().setContent(grid);
+
+                // Convert the result to caption when the add button is clicked
+                dialog.setResultConverter(dialogButton -> {
+                    if (dialogButton == addButtonType) {
+                        return mediaCptionField.getText();
+                    }
+                    return null;
+                });
+
+                // Show the dialog and process the result
+                Optional<String> result = dialog.showAndWait();
+                result.ifPresent(caption -> {
+                    String imagePath = "file:" + selectedFile.getAbsolutePath();
+                    
+                    // Add new image to the gallery
+                    updatedGallery.put(imagePath, caption);
+                    
+                    // Create and add new image container
+                    VBox imageContainer = new VBox(5);
+                    ImageView imageView = new ImageView(new Image(imagePath, 100, 100, true, true));
+                    TextField imageCaptionField = new TextField(caption);
+                    imageCaptionField.setMaxWidth(100);
+                    imageContainer.getChildren().addAll(imageView, imageCaptionField);
+                    galleryBox.getChildren().add(imageContainer);
+
+                    // Update the article's gallery
+                    currentOpenArticle.setGallery(updatedGallery);
+                });
+            }
+        });
+
+        // Add the button to the gallery section
+        VBox galleryControls = new VBox(10);
+        galleryControls.getChildren().addAll(addImageButton, galleryBox);
+        contentBox.getChildren().add(galleryControls);
+
+        scrollPane.setContent(contentBox);
+
         // Right side: right panel
         VBox rightPanel = new VBox(10);
         rightPanel.setMinWidth(300);
@@ -188,7 +288,7 @@ public class Controller {
         rightPanel.getChildren().add(rightPanelLabel);
 
         // Main Image
-        ImageView mainImageView = new ImageView(new Image(currentOpenArticle.getMainImage(), 300, 200, true, true));
+        ImageView mainImageView = new ImageView(new Image("file:" + currentOpenArticle.getMainImage(), 300, 200, true, true));
         rightPanel.getChildren().add(mainImageView);
 
         // Caption
@@ -253,26 +353,6 @@ public class Controller {
 
         // Add the main container to the mainVBox
         mainVBox.getChildren().add(mainContainer);
-
-        // Gallery
-        ScrollPane galleryScrollPane = new ScrollPane();
-        HBox galleryBox = new HBox(10);
-        galleryScrollPane.setContent(galleryBox);
-        galleryScrollPane.setFitToWidth(true);
-        galleryScrollPane.setPrefHeight(150);
-
-        // Add images to the gallery
-        for (Map.Entry<String, String> entry : currentOpenArticle.getGallery().entrySet()) {
-            VBox imageContainer = new VBox(5);
-            ImageView imageView = new ImageView(new Image(entry.getKey(), 100, 100, true, true));
-            TextField captionField2 = new TextField(entry.getValue());
-            captionField2.setMaxWidth(100);
-            imageContainer.getChildren().addAll(imageView, captionField2);
-            galleryBox.getChildren().add(imageContainer);
-        }
-
-        // Add the gallery to the mainVBox
-        mainVBox.getChildren().add(galleryScrollPane);
 
         // Add the mainVBox to the centerPanel
         centerPanel.getChildren().add(mainVBox);

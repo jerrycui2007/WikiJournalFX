@@ -82,7 +82,7 @@ public class Article {
             printWriter.println("<h2>Gallery</h2>");
             for (Map.Entry<String, String> image : gallery.entrySet()) {
                 printWriter.println("<div class=\"image\">");
-                printWriter.println("<img src=\"" + image.getKey() + "\">");
+                printWriter.println("<img src=\"" + image.getKey().replace("file:", "") + "\">");
                 printWriter.println("<figcaption>" + image.getValue() + "</figcaption>");
                 printWriter.println("</div>");
             }
