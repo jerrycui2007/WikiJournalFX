@@ -194,15 +194,20 @@ public class Controller {
         galleryBox.setStyle("-fx-padding: 10;");
 
         // Add images to the gallery
-        Map<String, String> updatedGallery = new HashMap<>(currentOpenArticle.getGallery());
+        Map<String, String> updatedGallery = new LinkedHashMap<>(currentOpenArticle.getGallery());
 
-        for (Map.Entry<String, String> entry : updatedGallery.entrySet()) {
+        for (Map.Entry<String, String> entry : currentOpenArticle.getGallery().entrySet()) {
             VBox imageContainer = new VBox(5);
-            ImageView imageView = new ImageView(new Image("file:" + entry.getKey(), 100, 100, true, true));
-            TextField imageCaptionField = new TextField(entry.getValue());
-            imageCaptionField.setMaxWidth(100);
-            imageContainer.getChildren().addAll(imageView, imageCaptionField);
-            galleryBox.getChildren().add(imageContainer);
+            try {
+                ImageView imageView = new ImageView(new Image("file:" + entry.getKey(), 100, 100, true, true));
+                TextField imageCaptionField = new TextField(entry.getValue());
+                imageCaptionField.setMaxWidth(100);
+                imageContainer.getChildren().addAll(imageView, imageCaptionField);
+                galleryBox.getChildren().add(imageContainer);
+            } catch (IllegalArgumentException e) {
+                System.err.println("Failed to load image: " + entry.getKey());
+                e.printStackTrace();
+            }
         }
 
         // Add Image Button
@@ -252,7 +257,7 @@ public class Controller {
                 // Show the dialog and process the result
                 Optional<String> result = dialog.showAndWait();
                 result.ifPresent(caption -> {
-                    String imagePath = "file:" + selectedFile.getAbsolutePath();
+                    String imagePath = selectedFile.getAbsolutePath();
                     
                     // Add new image to the gallery
                     updatedGallery.put(imagePath, caption);
@@ -315,25 +320,14 @@ public class Controller {
             infoboxFields.put(row.getKey(), valueField);
         }
 
-        // Export to HTML button
+        // Save button
+        Button saveButton = new Button("Save");
+        saveButton.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
+
+        // Export button
         Button exportButton = new Button("Export to HTML");
         exportButton.setStyle("-fx-font-size: 12px; -fx-font-family: Arial;");
         exportButton.setOnAction(event -> {
-            currentOpenArticle.setTitle(titleTextField.getText());
-            currentOpenArticle.setCaption(captionField.getText());
-
-            Map<String, String> updatedParagraphs = new HashMap<>();
-            for (Map.Entry<String, HTMLEditor> entry : paragraphEditors.entrySet()) {
-                updatedParagraphs.put(entry.getKey(), entry.getValue().getHtmlText());
-            }
-            currentOpenArticle.setParagraphs(updatedParagraphs);
-
-            Map<String, String> updatedInfobox = new HashMap<>();
-            for (Map.Entry<String, TextField> entry : infoboxFields.entrySet()) {
-                updatedInfobox.put(entry.getKey(), entry.getValue().getText());
-            }
-            currentOpenArticle.setInfobox(updatedInfobox);
-
             currentOpenArticle.convertToHTML();
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Export Successful");
@@ -341,7 +335,51 @@ public class Controller {
             alert.setContentText("Export successful");
             alert.showAndWait();
         });
-        rightPanel.getChildren().add(exportButton);
+
+        // Save button action
+        saveButton.setOnAction(event -> {
+            // Update article with current values
+            currentOpenArticle.setTitle(titleTextField.getText());
+            currentOpenArticle.setCaption(captionField.getText());
+
+            // Update paragraphs
+            Map<String, String> updatedParagraphs = new HashMap<>();
+            for (Map.Entry<String, HTMLEditor> entry : paragraphEditors.entrySet()) {
+                updatedParagraphs.put(entry.getKey(), entry.getValue().getHtmlText());
+            }
+            currentOpenArticle.setParagraphs(updatedParagraphs);
+
+            // Update infobox
+            Map<String, String> updatedInfobox = new HashMap<>();
+            for (Map.Entry<String, TextField> entry : infoboxFields.entrySet()) {
+                updatedInfobox.put(entry.getKey(), entry.getValue().getText());
+            }
+            currentOpenArticle.setInfobox(updatedInfobox);
+
+            // Update gallery captions
+            Map<String, String> updatedGalleryWithCaptions = new LinkedHashMap<>();
+            for (int i = 0; i < galleryBox.getChildren().size(); i++) {
+                VBox imageContainer = (VBox) galleryBox.getChildren().get(i);
+                TextField galleryCaptionField = (TextField) imageContainer.getChildren().get(1);
+                String imagePath = updatedGallery.keySet().toArray(new String[0])[i];
+                updatedGalleryWithCaptions.put(imagePath, galleryCaptionField.getText());
+            }
+            currentOpenArticle.setGallery(updatedGalleryWithCaptions);
+
+            // Save to JSON file
+            currentOpenArticle.saveToJSON(path);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Save Successful");
+            alert.setHeaderText(null);
+            alert.setContentText("Article saved successfully");
+            alert.showAndWait();
+        });
+
+        // Add both buttons in an HBox
+        HBox buttonBox = new HBox(10);
+        buttonBox.getChildren().addAll(saveButton, exportButton);
+        rightPanel.getChildren().add(buttonBox);
 
         // Add content and right panel to main container
         mainContainer.getChildren().addAll(scrollPane, rightPanel);

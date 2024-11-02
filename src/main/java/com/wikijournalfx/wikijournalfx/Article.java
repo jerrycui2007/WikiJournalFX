@@ -8,6 +8,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.LinkedHashMap;
 /**
  * Class for each article
  * Handles reading the article from .json, writing to html, etc.
@@ -20,7 +21,7 @@ public class Article {
     private String type;
     private String title;
     private Map<String, String> paragraphs; // header -> content
-    private Map<String, String> gallery;    // image path -> caption
+    private Map<String, String> gallery = new LinkedHashMap<>();    // image path -> caption
     private String mainImage;
     private String caption;
     private Map<String, String> infobox;    // row title -> caption
@@ -92,6 +93,20 @@ public class Article {
 
             printWriter.close();
 
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Saves the current state to JSON
+     *
+     * @param filePath path to save the JSON file
+     */
+    public void saveToJSON(String filePath) {
+        Gson gson = new Gson();
+        try (FileWriter writer = new FileWriter(filePath)) {
+            gson.toJson(this, writer);
         } catch (IOException e) {
             e.printStackTrace();
         }
